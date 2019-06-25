@@ -97,9 +97,7 @@ class FileSystemEventHandler(baseDirectoryPath: Path) {
                 removeWatchKey(key)
             }
         } catch(e: Exception) {
-
         }
-
         onDeleted.invoke(fileFullPath, fileName)
     }
     private var onDeleted: FileEventHandlerFunctionType = { _, _ -> }
@@ -185,7 +183,7 @@ class FileSystemEventHandler(baseDirectoryPath: Path) {
     private fun buildPathMatcher(filesPattern: Array<String> = ANY_KIND_OF_FILES): PathMatcher {
         val syntaxAndPattern: String
         val sep = File.separator
-        val filePatterns = filesPattern.contentToString().replaceSurrounding("[" to "]", "{" to "}").trim()
+        val filePatterns = filesPattern.contentToString().replaceSurrounding("[" to "]", "{" to "}").replace(" ", "").trim()
         val recursionToggle = if(isRecursive) "**${""/*sep*/}" else "" // ${""/**sep*/}
 
         syntaxAndPattern = if(useBuiltInMatcher) {
@@ -263,9 +261,13 @@ class FileSystemEventHandler(baseDirectoryPath: Path) {
         }
 
         if(isDebugEnabled) {
-            info("filesWatchedForModification = $filesWatchedForModification, pathMatcherForModificationEvent = $pathMatcherForModificationEvent.")
-            info("filesWatchedForDeletion = $filesWatchedForDeletion, pathMatcherForDeletionEvent = $pathMatcherForDeletionEvent")
-            info("filesWatchedForCreation = $filesWatchedForCreation, pathMatcherForCreationEvent = $pathMatcherForCreationEvent")
+            try {
+                info("filesWatchedForModification = $filesWatchedForModification, pathMatcherForModificationEvent = $pathMatcherForModificationEvent.")
+                info("filesWatchedForDeletion = $filesWatchedForDeletion, pathMatcherForDeletionEvent = $pathMatcherForDeletionEvent")
+                info("filesWatchedForCreation = $filesWatchedForCreation, pathMatcherForCreationEvent = $pathMatcherForCreationEvent")
+            } catch(e: Exception) {
+                e.printStackTrace()
+            }
 //            info("patternsOfFilesToWatch = $patternsOfFilesToWatch, pathMatcher = $pathMatcher")
         }
 
@@ -375,13 +377,11 @@ class FileSystemEventHandler(baseDirectoryPath: Path) {
     }
 
     companion object {
-//        private var pathOrFileOrRawString = "path"
-
         @JvmStatic val MODIFIED: WatchEvent.Kind<Path> = StandardWatchEventKinds.ENTRY_MODIFY
         @JvmStatic val CREATED: WatchEvent.Kind<Path> = StandardWatchEventKinds.ENTRY_CREATE
         @JvmStatic val DELETED: WatchEvent.Kind<Path> = StandardWatchEventKinds.ENTRY_DELETE
         @JvmStatic val OVERFLOW: WatchEvent.Kind<*> = StandardWatchEventKinds.OVERFLOW
-        @JvmStatic val EMPTY_STRING_ARRAY = emptyArray<String>()
+        @JvmStatic private val EMPTY_STRING_ARRAY = emptyArray<String>()
         @JvmStatic val ANY_KIND_OF_FILES = arrayOf("*")
 
         @JvmStatic fun filesWhichNameEndsWith(extension: String) = "*.$extension"
